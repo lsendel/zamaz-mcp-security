@@ -1,0 +1,170 @@
+# OWASP ZAP Automation Framework Configuration
+# Security scanning configuration for MCP Security module
+
+env:
+  contexts:
+    - name: "MCP Security API"
+      urls:
+        - "http://localhost:8080"
+      includePaths:
+        - "http://localhost:8080/api/.*"
+      excludePaths:
+        - ".*\\.js"
+        - ".*\\.css"
+        - ".*\\.png"
+        - ".*\\.jpeg"
+      authentication:
+        method: "json"
+        parameters:
+          loginUrl: "http://localhost:8080/api/v1/auth/login"
+          loginRequestData: '{"username":"{%username%}","password":"{%password%}"}'
+        verification:
+          method: "response"
+          loggedInRegex: '.*"token".*'
+          loggedOutRegex: '.*"error".*'
+      sessionManagement:
+        method: "httpAuthSessionManagement"
+        parameters:
+          sessionTokens:
+            - "Authorization"
+      users:
+        - name: "test-user"
+          credentials:
+            username: "testuser@example.com"
+            password: "TestPassword123!"
+
+jobs:
+  - type: passiveScan-config
+    parameters:
+      maxAlertsPerRule: 10
+      scanOnlyInScope: true
+      enableTags: false
+      
+  - type: spider
+    parameters:
+      maxDuration: 10
+      maxDepth: 10
+      maxChildren: 20
+      acceptCookies: true
+      handleODataParametersVisited: true
+      handleParameters: "IGNORE_COMPLETELY"
+      maxParseSizeBytes: 2621440
+      parseComments: true
+      parseRobotsTxt: true
+      parseSitemapXml: true
+      parseSVNEntries: false
+      parseGit: false
+      postForm: true
+      processForm: true
+      requestWaitTime: 200
+      sendRefererHeader: true
+      userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+
+  - type: passiveScan-wait
+    parameters:
+      maxDuration: 10
+
+  - type: activeScan
+    parameters:
+      maxRuleDurationInMins: 5
+      maxScanDurationInMins: 60
+      policy: "API-Scan-Policy"
+      context: "MCP Security API"
+      user: "test-user"
+      
+  - type: report
+    parameters:
+      template: "traditional-html"
+      reportDir: "/zap/reports"
+      reportFile: "mcp-security-scan-report"
+      reportTitle: "MCP Security Module - Security Scan Report"
+      reportDescription: "Automated security scan results for MCP Security module"
+      displayReport: false
+    risks:
+      - high
+      - medium
+      - low
+      - info
+    confidences:
+      - high
+      - medium
+      - low
+      - falsepositive
+
+# Active scan rules configuration
+rules:
+  - id: 40012  # Cross Site Request Forgery
+    strength: MEDIUM
+    threshold: LOW
+  - id: 40014  # Cross Site Scripting (Persistent)
+    strength: HIGH
+    threshold: LOW
+  - id: 40016  # Cross Site Scripting (Reflected)
+    strength: HIGH
+    threshold: LOW
+  - id: 40017  # Cross Site Scripting (DOM Based)
+    strength: HIGH
+    threshold: LOW
+  - id: 90019  # Server Side Code Injection
+    strength: HIGH
+    threshold: LOW
+  - id: 90020  # Remote OS Command Injection
+    strength: HIGH
+    threshold: LOW
+  - id: 90021  # Path Traversal
+    strength: HIGH
+    threshold: LOW
+  - id: 90022  # Application Error Disclosure
+    strength: MEDIUM
+    threshold: LOW
+  - id: 40003  # CRLF Injection
+    strength: MEDIUM
+    threshold: LOW
+  - id: 40008  # Parameter Tampering
+    strength: MEDIUM
+    threshold: LOW
+  - id: 40009  # Server Side Include
+    strength: HIGH
+    threshold: LOW
+  - id: 40013  # Session Fixation
+    strength: HIGH
+    threshold: LOW
+  - id: 40018  # SQL Injection
+    strength: HIGH
+    threshold: LOW
+  - id: 40019  # SQL Injection (MySQL)
+    strength: HIGH
+    threshold: LOW
+  - id: 40020  # SQL Injection (Hypersonic SQL)
+    strength: HIGH
+    threshold: LOW
+  - id: 40021  # SQL Injection (Oracle)
+    strength: HIGH
+    threshold: LOW
+  - id: 40022  # SQL Injection (PostgreSQL)
+    strength: HIGH
+    threshold: LOW
+  - id: 40023  # Possible Username Enumeration
+    strength: MEDIUM
+    threshold: LOW
+  - id: 40025  # Proxy Disclosure
+    strength: MEDIUM
+    threshold: LOW
+  - id: 40026  # Cross Domain Misconfiguration
+    strength: MEDIUM
+    threshold: LOW
+  - id: 40027  # Information Disclosure - Database Error Messages
+    strength: MEDIUM
+    threshold: LOW
+  - id: 40028  # ELMAH Information Leak
+    strength: MEDIUM
+    threshold: LOW
+  - id: 40029  # Trace.axd Information Leak
+    strength: MEDIUM
+    threshold: LOW
+  - id: 40032  # .htaccess Information Leak
+    strength: MEDIUM
+    threshold: LOW
+  - id: 10104  # User Agent Fuzzer
+    strength: MEDIUM
+    threshold: LOW

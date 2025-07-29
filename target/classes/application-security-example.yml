@@ -1,0 +1,110 @@
+# Example security configuration for MCP services
+# Copy and customize this configuration for your environment
+
+security:
+  jwt:
+    issuer: "mcp-auth-server"
+    signing-algorithm: "RS256"
+    access-token-expiration-minutes: 15
+    refresh-token-expiration-days: 30
+    enable-token-rotation: true
+    key-store-location: "classpath:keystore.p12"
+    key-store-password: "${JWT_KEYSTORE_PASSWORD:changeme}"
+    key-alias: "mcp-jwt"
+
+  cors:
+    allowed-origins:
+      - "http://localhost:3000"
+      - "http://localhost:8080"
+      - "${FRONTEND_URL:http://localhost:3000}"
+    allowed-methods:
+      - "GET"
+      - "POST"
+      - "PUT"
+      - "DELETE"
+      - "OPTIONS"
+    allowed-headers:
+      - "*"
+    allow-credentials: true
+    max-age: 3600
+
+  headers:
+    content-security-policy: "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https:; connect-src 'self' https:; frame-ancestors 'none';"
+    referrer-policy: "strict-origin-when-cross-origin"
+    permissions-policy: "geolocation=(), microphone=(), camera=()"
+    enable-hsts: true
+    hsts-max-age: 31536000
+    hsts-include-subdomains: true
+    hsts-preload: true
+
+  password:
+    min-length: 12
+    max-length: 128
+    breach-check:
+      enabled: true
+      api-url: "https://api.pwnedpasswords.com/range/"
+      timeout-seconds: 5
+
+  mfa:
+    backup-codes:
+      count: 10
+      length: 8
+    totp:
+      window: 3
+      code-digits: 6
+      time-step-seconds: 30
+
+  lockout:
+    max-attempts: 5
+    initial-duration-minutes: 5
+    max-duration-minutes: 1440
+    progressive-multiplier: 2
+    enable-progressive-delay: true
+
+  alerts:
+    enabled: true
+    webhook:
+      url: "${SECURITY_WEBHOOK_URL:}"
+      timeout-seconds: 10
+      retry-attempts: 3
+    email:
+      enabled: false
+      recipients:
+        - "security@zamaz.com"
+      from-address: "noreply@zamaz.com"
+    thresholds:
+      failed-login-threshold: 5
+      suspicious-ip-threshold: 10
+      high-risk-event-threshold: 3
+      analysis-window-minutes: 15
+
+# Environment-specific overrides
+---
+spring:
+  config:
+    activate:
+      on-profile: "development"
+
+security:
+  headers:
+    content-security-policy: "default-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data: https:; connect-src 'self' ws: wss: https:;"
+  alerts:
+    enabled: false
+
+---
+spring:
+  config:
+    activate:
+      on-profile: "production"
+
+security:
+  jwt:
+    access-token-expiration-minutes: 5
+    refresh-token-expiration-days: 7
+  lockout:
+    max-attempts: 3
+    initial-duration-minutes: 15
+  alerts:
+    enabled: true
+    email:
+      enabled: true

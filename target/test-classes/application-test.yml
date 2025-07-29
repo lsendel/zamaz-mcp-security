@@ -1,0 +1,131 @@
+spring:
+  application:
+    name: mcp-security-test
+  
+  # Test database configuration
+  datasource:
+    url: jdbc:h2:mem:securitydb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password: 
+    driver-class-name: org.h2.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        show_sql: false
+        format_sql: true
+    database-platform: org.hibernate.dialect.H2Dialect
+  
+  # Security configuration for tests
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/auth
+          
+# Application security settings
+application:
+  security:
+    jwt:
+      # Use test secret for consistent testing
+      secret: "test-secret-key-for-jwt-signing-that-is-at-least-256-bits-long"
+      access-token-expiration: 3600000  # 1 hour
+      refresh-token-expiration: 86400000 # 24 hours
+      issuer: "mcp-test"
+      
+    # CORS settings for tests
+    cors:
+      allowed-origins: "*"
+      allowed-methods: "*"
+      allowed-headers: "*"
+      exposed-headers: "Authorization"
+      allow-credentials: true
+      max-age: 3600
+      
+    # Rate limiting disabled for tests
+    rate-limiting:
+      enabled: false
+      
+    # Audit logging
+    audit:
+      enabled: true
+      log-level: DEBUG
+      include-request-details: true
+      include-response-details: true
+      
+    # Multi-tenancy
+    multi-tenancy:
+      enabled: true
+      header-name: "X-Organization-Id"
+      enforce-isolation: true
+      
+    # Permission caching
+    permissions:
+      cache-enabled: false  # Disable for tests to ensure fresh data
+      cache-ttl: 60s
+      
+# Test-specific configurations
+test:
+  security:
+    # Pre-configured test users
+    users:
+      - username: admin@test.com
+        password: admin123
+        roles: [SYSTEM_ADMIN]
+        userId: test-admin
+        
+      - username: orgadmin@test.com
+        password: orgadmin123
+        roles: [ORG_ADMIN]
+        userId: test-org-admin
+        organizationId: test-org
+        
+      - username: user@test.com
+        password: user123
+        roles: [USER]
+        userId: test-user
+        organizationId: test-org
+        
+    # Test organizations
+    organizations:
+      - id: test-org
+        name: Test Organization
+        active: true
+        
+      - id: test-org-2
+        name: Test Organization 2
+        active: true
+        
+    # Default permissions for roles
+    role-permissions:
+      SYSTEM_ADMIN: "*"  # All permissions
+      ORG_ADMIN:
+        - DEBATE_CREATE
+        - DEBATE_UPDATE
+        - DEBATE_DELETE
+        - DEBATE_VIEW
+        - TEMPLATE_MANAGE
+        - USER_MANAGE
+      USER:
+        - DEBATE_VIEW
+        - DEBATE_CREATE
+        
+# Logging configuration
+logging:
+  level:
+    root: WARN
+    com.zamaz.mcp.security: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.web: INFO
+    
+# Actuator endpoints for testing
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
