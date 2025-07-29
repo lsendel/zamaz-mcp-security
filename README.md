@@ -392,4 +392,4 @@ openssl rsa -in private_key.pem -pubout -out public_key.pem
 For issues and questions:
 - GitHub Issues: [mcp-security/issues](https://github.com/zamaz/mcp-security/issues)
 - Documentation: [docs.mcp-platform.com/security](https://docs.mcp-platform.com/security)
-- Security Issues: security@mcp-platform.com
+- Security Issues: security@mcp-platform.com# Force GitHub to refresh
